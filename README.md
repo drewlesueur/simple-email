@@ -1,5 +1,7 @@
 simple email server
 
+not done yet :)
+
 with lots of help from
 
 https://github.com/ralphholzmann/node-smtp
