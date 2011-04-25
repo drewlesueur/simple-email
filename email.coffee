@@ -3,13 +3,15 @@ util = require "util"
 events = require "events"
 Server = net.Server
 Socket = net.Socket
+MailParser = require("mailparser").MailParser
 _ = require("underscore")
-require('drews-mixins').mixinWith _
+drews = require "drews-mixins"
+_.mixin drews
 
 class EmailMessage extends events.EventEmitter
   constructor: (socket) ->
     @socket = socket
-    @socket.setEncoding('utf8');
+
 ip = ""
 name = ""
 eol = "\r\n"
@@ -60,31 +62,26 @@ class EmailServer extends events.EventEmitter
       sendResponse socket, 'OPEN'
 
     socket.on 'data', (data) ->
-      parts   = data.split(/\s|\\r|\\n/)
-      command = parts[0]
-
-      console.log('C: ' + parts.join(' ').trim())
-
-      # Check for a command
-      if commands[command]
-        sendResponse socket, command, parts[1]
-
-      if command == "DATA" then socket.state = "data"
-
-
-      # Check for end of email
-      else if data.substr(-5) == "\r\n.\r\n"
-        email += data.substring 0, data.length - 5
-        sendResponse socket, '.'
-      # Build email
+      if socket.state == "data"
+        if data.substr(-5) == "\r\n.\r\n"
+          email += data.substring 0, data.length - 5
+          sendResponse socket, '.'
+          emailMessage.emit "close"
+          console.log email
+        else
+          email += data
+          emailMessage.emit "data", data
       else
-        email += data;
-      
+        parts   = data.split(/\s|\\r|\\n/)
+        command = parts[0]
 
-      clearTimeout( timeout );
-      timeout = _.wait 1000, () ->
-        sendResponse socket, 'MAIL'
+        console.log('C: ' + parts.join(' ').trim())
 
+        # Check for a command
+        if commands[command]
+          sendResponse socket, command, parts[1]
+
+          if command == "DATA" then socket.state = "data"
     #Finished
     socket.on 'close', () ->
       clearTimeout timeout

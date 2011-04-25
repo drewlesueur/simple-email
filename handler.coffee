@@ -1,6 +1,6 @@
 emailServer = new EmailServer()
 
-emailServer.on "email", (emailMessage) ->
+emailServer.on "email", (emailMessage, mailParser) ->
   mailParser = new MailParser()
   emailMessage.on "data", (data) ->
     mailParser.feed(data)
