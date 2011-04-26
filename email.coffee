@@ -5,8 +5,7 @@ Server = net.Server
 Socket = net.Socket
 MailParser = require("mailparser").MailParser
 _ = require("underscore")
-drews = require "drews-mixins"
-_.mixin drews
+require("drews-mixins") _
 
 class EmailMessage extends events.EventEmitter
   constructor: (socket) ->
